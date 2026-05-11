@@ -1,169 +1,162 @@
 import math
+# from collections import defaultdict
 
-# Define skill aliases
+# 1. DATASETS
+candidates = [
+    {"id": "01", "name": "Arjun Sharma", "skills": "Pyhton, Machine Learning, SQL, pandas, numpy, Deep-learning"},
+    {"id": "02", "name": "Priya Nair", "skills": "JavaScrpit, Reacts, Node.JS, MongoDb, REST api, HTML/CSS"},
+    {"id": "03", "name": "Rahul Gupta", "skills": "Java, Spring Boot, MySql, Microservices, Docker, kubernates"},
+    {"id": "04", "name": "Sneha Patel", "skills": "Python, TensorFlow, Keras, NLP, BERT, data-viz, matplotlib"},
+    {"id": "05", "name": "Vikram Singh", "skills": "C++, Algoritms, Data Structure, competitive programming, python"},
+    {"id": "06", "name": "Ananya Krishnan", "skills": "javascript, vue.js, python, flask, PostgreSQL, AWS, CI/CD"},
+    {"id": "07", "name": "Karan Mehta", "skills": "Python, Sklearn, XGboost, feature engineering, SQL, tableau"},
+    {"id": "08", "name": "Deepika Rao", "skills": "Java, Android, Kotlin, Firebase, REST, UI/UX, figma"},
+    {"id": "09", "name": "Aditya Kumar", "skills": "Reactjs, TypeScrpit, GraphQL, redux, tailwind, nodejs, jest"},
+    {"id": "10", "name": "Meera lyer", "skills": "python, R, statistics, ML, regression, clustering, Power-Bl"}
+]
+
+jds = [
+    {"id": "JD-1", "title": "Kakao (ML Engineer)", "req": "Python, Machine Learning, Deep Learning, TensorFlow, PyTorch, SQL, Data Visualization", "pref": "NLP, BERT, Feature Engineering, Statistics"},
+    {"id": "JD-2", "title": "Naver (Backend Engineer)", "req": "Java, Spring Boot, MySQL, PostgreSQL, Microservices, Docker, Kubernetes", "pref": "REST API, CI/CD, Redis"},
+    {"id": "JD-3", "title": "Line (Frontend Engineer)", "req": "JavaScript, React, Vue, TypeScript, REST API, HTML/CSS", "pref": "Node.js, GraphQL, Redux, Jest, AWS"}
+]
+
+
+
+# 2. SKILL ALIASES 
+# Fixed minor OCR missing components based strictly on canonical mapping
 SKILL_ALIASES = {
-    "python": "python", "pyhton": "python",
-    "java": "java",
-    "javascript": "javascript", "javascrpit": "javascript", "js": "javascript",
-    "typescript": "typescript", "typescrpit": "typescript",
-    "c++": "cpp", "cpp": "cpp",
-    "r": "r", "kotlin": "kotlin",
-    "machinelearning": "machinelearning", "machine learning": "machinelearning",
-    "ml": "machinelearning", "sklearn": "machinelearning",
-    "deeplearning": "deeplearning", "deep learning": "deeplearning",
-    "deep-learning": "deep_learning",
+    "python": "python", "pyhton": "python", "java": "java", "javascript": "javascript",
+    "javascrpit": "javascript", "js": "javascript", "typescript": "typescript",
+    "typescrpit": "typescript", "c++": "cpp", "cpp": "cpp", "r": "r", 
+    "kotlin": "kotlin", "machinelearning": "machine_learning",
+    "machine learning": "machine_learning", "ml": "machine_learning",
+    "sklearn": "machine_learning", "deeplearning": "deep_learning",
+    "deep learning": "deep_learning", "deep-learning": "deep_learning",
     "tensorflow": "tensorflow", "pytorch": "pytorch", "keras": "keras",
-    "nlp": "nlp", "bert": "bert", "xgboost": "xgboost",
-    "feature engineering": "feature_engineering",
-    "statistics": "statistics", "stats": "statistics",
-    "regression": "regression", "clustering": "clustering",
-    "data-viz": "datavisualization", "data visualization": "datavisualization",
-    "data viz": "datavisualization", "matplotlib": "datavisualization",
-    "tableau": "datavisualization", "power-bi": "datavisualization",
-    "power bi": "datavisualization", "powerbi": "datavisualization",
-    "pandas": "pandas", "numpy": "numpy",
-    "react": "react", "reacts": "react", "reactjs": "react",
-    "vue": "vue", "vue.js": "vue", "vuejs": "vue",
-    "redux": "redux", "tailwind": "tailwind",
-    "html/css": "htmlcss", "html css": "htmlcss",
-    "html": "htmlcss", "css": "htmlcss",
-    "jest": "jest", "graphql": "graphql",
-    "node.js": "nodejs", "nodejs": "nodejs", "node js": "nodejs",
-    "flask": "flask",
-    "spring boot": "springboot", "springboot": "springboot",
-    "rest api": "restapi", "rest": "restapi", "restapi": "rest_api",
-    "microservices": "microservices",
-    "sql": "sql", "mysql": "mysql", "mysq": "mysql",
-    "postgresql": "postgresql", "postgres": "postgresql",
-    "mongodb": "mongodb", "redis": "redis",
-    "docker": "docker",
-    "kubernetes": "kubernetes", "kubernates": "kubernetes", "k8s": "kubernetes",
-    "ci/cd": "cicd", "cicd": "cicd", "ci cd": "ci_cd",
-    "aws": "aws",
-    "android": "android", "firebase": "firebase",
+    "nip": "nlp", "nlp": "nlp", "bert": "bert", "xgboost": "xgboost", 
+    "feature engineering": "feature_engineering", "statistics": "statistics", 
+    "stats": "statistics", "regression": "regression", "clustering": "clustering", 
+    "data-viz": "data_visualization", "data visualization": "data_visualization", 
+    "data viz": "data_visualization", "matplotlib": "data_visualization", 
+    "tableau": "data_visualization", "power-bi": "data_visualization", 
+    "power bi": "data_visualization", "powerbi": "data_visualization", 
+    "pandas": "pandas", "numpy": "numpy", "react": "react", "reacts": "react", 
+    "reactjs": "react", "vue": "vue", "vue.js": "vue", "vuejs": "vue", 
+    "redux": "redux", "tailwind": "tailwind", "html/css": "html_css", 
+    "html css": "html_css", "html": "html_css", "css": "html_css",
+    "jest": "jest", "graphql": "graphql", "node.js": "nodejs", "nodejs": "nodejs",
+    "node js": "nodejs", "flask": "flask", "spring boot": "spring_boot",
+    "springboot": "spring_boot", "rest api": "rest_api", "rest": "rest_api",
+    "restapi": "rest_api", "microservices": "microservices", "sql": "sql",
+    "mysql": "mysql", "mysq": "mysql", "postgresql": "postgresql",
+    "postgres": "postgresql", "mongodb": "mongodb", "redis": "redis",
+    "docker": "docker", "kubernetes": "kubernetes", "kubernates": "kubernetes",
+    "k8s": "kubernetes", "ci/cd": "ci_cd", "cicd": "ci_cd", "ci ca": "ci_cd",
+    "aws": "aws", "android": "android", "firebase": "firebase",
     "algorithms": "algorithms", "algoritms": "algorithms",
-    "data structure": "datastructures", "data structures": "datastructures",
+    "data structure": "data_structures", "data structures": "data_structures",
     "competitive programming": "competitive_programming",
-    "ui/ux": "uiux", "ui ux": "uiux", "figma": "figma",
+    "ui/ux": "ui_ux", "ui ux": "ui_ux", "figma": "figma"
 }
 
+# 3. HELPER FUNCTIONS
+def normalize_and_dedupe(skill_string):
+    """Splits by comma, lowercases, maps to alias, deduplicates canonicals."""
+    raw_skills = [s.strip().lower() for s in skill_string.split(",")]
+    canonical_skills = set()
+    for skill in raw_skills:
+        if skill in SKILL_ALIASES:
+            canonical_skills.add(SKILL_ALIASES[skill])
+    return sorted(list(canonical_skills))
 
-#Define resume data
-resumes_raw = [
-    ("Arjun Sharma",    "Pyhton, MachineLearning, SQL, pandas, numpy, Deep-learning"),
-    ("Priya Nair",      "JavaScrpit, Reacts, Node.JS, MongoDb, REST api, HTML/CSS"),
-    ("Rahul Gupta",     "Java, Spring Boot, MySql, Microservices, Docker, kubernates"),
-    ("Sneha Patel",     "Python, TensorFlow, Keras, NLP, BERT, data-viz, matplotlib"),
-    ("Vikram Singh",    "C++, Algoritms, Data Structure, competitive programming, python"),
-    ("Ananya Krishnan", "javascript, vue.js, python, flask, PostgreSQL, AWS, CI/CD"),
-    ("Karan Mehta",     "Python, Sklearn, XGboost, feature engineering, SQL, tableau"),
-    ("Deepika Rao",     "Java, Android, Kotlin, Firebase, REST, UI/UX, figma"),
-    ("Aditya Kumar",    "Reactjs, TypeScrpit, GraphQL, redux, tailwind, nodejs, jest"),
-    ("Meera Iyer",      "python, R, statistics, ML, regression, clustering, Power-BI"),
-]
+def vector_norm(vector):
+    """Computes Euclidean norm of a vector array."""
+    return math.sqrt(sum(v**2 for v in vector))
+
+def dot_product(v1, v2):
+    """Computes dot product of two vector arrays."""
+    return sum(a * b for a, b in zip(v1, v2))
+
+# 4. PROCESSING RESUMES
+resume_skills = {}
+skill_document_frequency = defaultdict(int)
+
+# Normalize and calculate Document Frequency (df)
+for c in candidates:
+    n_skills = normalize_and_dedupe(c["skills"])
+    resume_skills[c["id"]] = n_skills
+    for skill in n_skills:
+        skill_document_frequency[skill] += 1
+
+# 5. BUILD VOCABULARY
+# "Create a shared vocabulary from normalized, deduplicated resume skills only"
+vocabulary = sorted(list(skill_document_frequency.keys()))
+total_resumes = len(candidates)
+
+# Compute Resume TF-IDF Vectors
+resume_vectors = {}
+for c in candidates:
+    c_id = c["id"]
+    r_skills = resume_skills[c_id]
+    N = len(r_skills)
+    
+    vec = []
+    for vocab_skill in vocabulary:
+        if vocab_skill in r_skills:
+            tf = 1.0 / N
+            idf = math.log(total_resumes / skill_document_frequency[vocab_skill])
+            vec.append(tf * idf)
+        else:
+            vec.append(0.0)
+    resume_vectors[c_id] = vec
+
+# 6. PROCESS JDS & CALCULATE MATCHES
+results = {}
+
+for jd in jds:
+    # Combine Req and Pref skills
+    jd_raw_skills = jd["req"] + ", " + jd["pref"]
+    jd_normalized = normalize_and_dedupe(jd_raw_skills)
+    
+    # Build JD Binary Vector based ONLY on shared vocabulary
+    jd_vector = []
+    for vocab_skill in vocabulary:
+        if vocab_skill in jd_normalized:
+            jd_vector.append(1.0)
+        else:
+            jd_vector.append(0.0)
+            
+    jd_norm = vector_norm(jd_vector)
+    
+    jd_scores = []
+    for c in candidates:
+        c_id = c["id"]
+        r_vec = resume_vectors[c_id]
+        
+        r_norm = vector_norm(r_vec)
+        
+        if r_norm == 0 or jd_norm == 0:
+            score = 0.0
+        else:
+            score = dot_product(r_vec, jd_vector) / (r_norm * jd_norm)
+            
+        jd_scores.append({
+            "name": c["name"],
+            "score": round(score, 2)
+        })
+        
+    # Sort by score descending, then by name alphabetically (tiebreaker)
+    jd_scores.sort(key=lambda x: (-x["score"], x["name"]))
+    
+    # Get top 3
+    top_3 = jd_scores[:3]
+    results[jd["id"]] = f"{top_3[0]['name']} ({top_3[0]['score']:.2f}), {top_3[1]['name']} ({top_3[1]['score']:.2f}), {top_3[2]['name']} ({top_3[2]['score']:.2f})"
+
+# 7. OUTPUT
+print("JD-1 Result:", results["JD-1"])
+print("JD-2 Result:", results["JD-2"])
+print("JD-3 Result:", results["JD-3"])
 
 
 
-#Normalize and deduplicate skills
-def normalizeskills(rawskills_str):
-    # Sort aliases by length descending (match multi-word phrases first)
-    sortedaliases = sorted(SKILLALIASES.keys(), key=len, reverse=True)
-    tokens = [t.strip().lower() for t in rawskillsstr.split(",")]
-    canonical = []
-    seen = set()
-    for token in tokens:
-        matched = False
-        for alias in sorted_aliases:
-            if token == alias:
-                canon = SKILL_ALIASES[alias]
-                if canon not in seen:
-                    canonical.append(canon)
-                    seen.add(canon)
-                matched = True
-                break
-        # discard if not matched
-    return canonical
-
-print("=== STEP 1+2: Normalized & Deduplicated Skills ===")
-resumes = []
-for name, raw in resumes_raw:
-    skills = normalize_skills(raw)
-    resumes.append((name, skills))
-    print(f"{name}: {skills}")
-
-
-#Build vocabulary
-all_skills = set()
-for _, skills in resumes:
-    all_skills.update(skills)
-vocab = sorted(all_skills)
-vocab_index = {s: i for i, s in enumerate(vocab)}
-V = len(vocab)
-
-print(f"\n=== STEP 3: Vocabulary ({V} skills) ===")
-print(vocab)
-
-
-Calculate TF-IDF vectors
-N_docs = len(resumes)
-
-Document frequency
-df = {skill: 0 for skill in vocab}
-for _, skills in resumes:
-    for s in skills:
-        df[s] += 1
-
-IDF
-idf = {skill: math.log(N_docs / df[skill]) for skill in vocab}
-
-print("\n=== IDF values ===")
-for s in vocab:
-    print(f"  {s}: df={df[s]}, idf={idf[s]:.6f}")
-
-# TF-IDF vectors
-tfidf_vectors = []
-for name, skills in resumes:
-    N = len(skills)
-    vec = [0.0] * V
-    for s in skills:
-        idx = vocab_index[s]
-        tf = 1.0 / N
-        vec[idx] = tf * idf[s]
-    tfidf_vectors.append((name, vec))
-
-print("\n=== STEP 4: TF-IDF Vectors (non-zero only) ===")
-for name, vec in tfidf_vectors:
-    nonzero = [(vocab[i], round(vec[i], 6)) for i in range(V) if vec[i] > 0]
-    print(f"{name}: {nonzero}")
-
-Define job descriptions
-jd_raw = [
-    ("JD-1 Kakao ML Engineer",
-     "Python, Machine Learning, Deep Learning, TensorFlow, PyTorch, SQL, Data Visualization, NLP, BERT, Feature Engineering, Statistics"),
-    ("JD-2 Naver Backend Engineer",
-     "Java, Spring Boot, MySQL, PostgreSQL, Microservices, Docker, Kubernetes, REST API, CI/CD, Redis"),
-    ("JD-3 Line Frontend Engineer",
-     "JavaScript, React, Vue, TypeScript, REST API, HTML/CSS, Node.js, GraphQL, Redux, Jest, AWS"),
-]
-
-#Build job description binary vectors
-def buildjdvector(jdskillsstr):
-    vec = [0] * V
-    tokens = [t.strip().lower() for t in jdskillsstr.split(",")]
-    sortedaliases = sorted(SKILLALIASES.keys(), key=len, reverse=True)
-    for token in tokens:
-        for alias in sorted_aliases:
-            if token == alias:
-                canon = SKILL_ALIASES[alias]
-                if canon in vocab_index:
-                    vec[vocab_index[canon]] = 1
-                break
-    return vec
-
-jd_vectors = []
-print("\n=== STEP 5: JD Binary Vectors (skills matched in vocab) ===")
-for jdname, jdrawstr in jdraw:
-    vec = buildjdvector(jdrawstr)
-    matched = [vocab[i] for i in range(V) if vec[i] == 1]
-    jdvectors.append((jdname, vec))
-    print(f"{jd_name}: {matched}")
