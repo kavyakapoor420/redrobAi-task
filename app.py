@@ -90,3 +90,80 @@ for name, raw in resumes_raw:
     skills = normalize_skills(raw)
     resumes.append((name, skills))
     print(f"{name}: {skills}")
+
+
+#Build vocabulary
+all_skills = set()
+for _, skills in resumes:
+    all_skills.update(skills)
+vocab = sorted(all_skills)
+vocab_index = {s: i for i, s in enumerate(vocab)}
+V = len(vocab)
+
+print(f"\n=== STEP 3: Vocabulary ({V} skills) ===")
+print(vocab)
+
+
+Calculate TF-IDF vectors
+N_docs = len(resumes)
+
+Document frequency
+df = {skill: 0 for skill in vocab}
+for _, skills in resumes:
+    for s in skills:
+        df[s] += 1
+
+IDF
+idf = {skill: math.log(N_docs / df[skill]) for skill in vocab}
+
+print("\n=== IDF values ===")
+for s in vocab:
+    print(f"  {s}: df={df[s]}, idf={idf[s]:.6f}")
+
+# TF-IDF vectors
+tfidf_vectors = []
+for name, skills in resumes:
+    N = len(skills)
+    vec = [0.0] * V
+    for s in skills:
+        idx = vocab_index[s]
+        tf = 1.0 / N
+        vec[idx] = tf * idf[s]
+    tfidf_vectors.append((name, vec))
+
+print("\n=== STEP 4: TF-IDF Vectors (non-zero only) ===")
+for name, vec in tfidf_vectors:
+    nonzero = [(vocab[i], round(vec[i], 6)) for i in range(V) if vec[i] > 0]
+    print(f"{name}: {nonzero}")
+
+Define job descriptions
+jd_raw = [
+    ("JD-1 Kakao ML Engineer",
+     "Python, Machine Learning, Deep Learning, TensorFlow, PyTorch, SQL, Data Visualization, NLP, BERT, Feature Engineering, Statistics"),
+    ("JD-2 Naver Backend Engineer",
+     "Java, Spring Boot, MySQL, PostgreSQL, Microservices, Docker, Kubernetes, REST API, CI/CD, Redis"),
+    ("JD-3 Line Frontend Engineer",
+     "JavaScript, React, Vue, TypeScript, REST API, HTML/CSS, Node.js, GraphQL, Redux, Jest, AWS"),
+]
+
+#Build job description binary vectors
+def buildjdvector(jdskillsstr):
+    vec = [0] * V
+    tokens = [t.strip().lower() for t in jdskillsstr.split(",")]
+    sortedaliases = sorted(SKILLALIASES.keys(), key=len, reverse=True)
+    for token in tokens:
+        for alias in sorted_aliases:
+            if token == alias:
+                canon = SKILL_ALIASES[alias]
+                if canon in vocab_index:
+                    vec[vocab_index[canon]] = 1
+                break
+    return vec
+
+jd_vectors = []
+print("\n=== STEP 5: JD Binary Vectors (skills matched in vocab) ===")
+for jdname, jdrawstr in jdraw:
+    vec = buildjdvector(jdrawstr)
+    matched = [vocab[i] for i in range(V) if vec[i] == 1]
+    jdvectors.append((jdname, vec))
+    print(f"{jd_name}: {matched}")
